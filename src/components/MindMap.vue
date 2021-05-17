@@ -19,7 +19,8 @@
       @blur="search = '';searchNode()"
     />
     <div ref="dummy" id="dummy"></div>
-    <div ref="menu"
+    <div
+      ref="menu"
       id="menu"
       tabindex="0"
       v-show="showContextMenu"
@@ -36,22 +37,22 @@
         <div>{{ item.title }}</div>
       </div>
     </div>
-    <div v-show="showButtonList" class="buttonList right-bottom">
-      <div v-show="gps" @click="makeCenter()">
+    <div class="buttonList right-bottom">
+      <div v-if="gps" @click="makeCenter()">
         <slot name="gps-btn">
           <button class="icon" ref="gps" type="button">
             <i class="gps"></i>
           </button>
         </slot>
       </div>
-      <div v-show="fitView" @click="fitContent()">
+      <div v-if="fitView" @click="fitContent()">
         <slot name="fit-btn">
           <button class="icon" ref="fitView" type="button">
             <i class="fitView"></i>
           </button>
         </slot>
       </div>
-      <div v-show="download" @click="exportImg()">
+      <div v-if="download" @click="exportImg()">
         <slot name="download-btn">
           <button class="icon" ref="download" type="button">
             <i class="download"></i>
@@ -59,7 +60,7 @@
         </slot>
       </div>
     </div>
-    <div v-show="showButtonList && showUndo" class="buttonList top-right">
+    <div v-if="showUndo" class="buttonList top-right">
       <div @click="undo()">
         <slot name="undo-btn">
           <button class="icon" :class="{ disabled: !canUndo }" ref="undo" type="button">
@@ -160,7 +161,6 @@ export default class MindMap extends Vue {
   toUpdate = true // 判断是否需要更新mmdata
   dTop!: FlexNode // mmdata中纵坐标最高的数据
   root!: FlexNode // 包含位置信息的mmdata
-  showButtonList = true
   showContextMenu = false
   showSelectedBox = false // 选中框
   contextMenuX = 0

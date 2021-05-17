@@ -25,7 +25,7 @@ class History {
   undo() {
     if (this.canUndo) {
       this.cursor -= 1
-      console.log(this.snapshots)
+      // console.log(this.snapshots)
       return this.snapshots[this.cursor]
     }
     return null
