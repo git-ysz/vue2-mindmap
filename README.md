@@ -2,7 +2,7 @@
 
 # 思维导图Vue组件，基于d3.js实现
 
-## 根据 <a href="https://github.com/hellowuxin/mindmap" target="_blank">mindmap</a> 进行了一些修改
+## 根据 <a target="_blank" href="https://github.com/hellowuxin/mindmap">mindmap</a> 进行了一些修改
 ```
 因为原作作者已经不再维护vue2的版本，所以针对自己的业务进行了一些修改
 目前实现的功能：
