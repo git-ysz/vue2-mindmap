@@ -50,7 +50,7 @@
 | Name           | arguments      | Description
 | ---            | ---            | ---
 | updateNodeName | data, id       | 更新节点名称时，传入节点数据和节点id
-| change         | data           | 更新节点名称时，传入节点数据和节点id
+| change         | data           | 更新节点名称时，传入节点数据
 | click          | data, id       | 点击节点时，传入节点数据和节点id
 | copy           | data, tragetId | 需要复制的数据，传入复制的数据和节点id
 | paste          | data, parentId | 复制的数据，传入复制的数据和父节点id
