@@ -221,7 +221,7 @@ export default class MindMap extends Vue {
     }).each((d, i, n) => {
       const gNode = d3.select(n[i]) as d3.Selection<Element, FlexNode, null, undefined>
       // 将折叠节点的展开
-      (gNode.selectAll('g.gEllipsis.show') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((cd) => this.expand(cd.data))
+      ;(gNode.selectAll('g.gEllipsis.show') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((cd) => this.expand(cd.data))
       // 折叠起来的查不到（在此之前将匹配项的父级展开）
       const divNode = gNode.selectAll('foreignObject > div') as d3.Selection<Element, FlexNode, Element, FlexNode>
       // 更改匹配项的背景
