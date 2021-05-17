@@ -1,0 +1,367 @@
+$seleColor: rgba($color: blue, $alpha: 0.15);
+$strokeWidths: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10;
+$minTextWidth: 30px;
+$minTextHeight: 21px;
+
+button:focus { outline: none; }
+
+button.icon {
+  position: relative;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  color: #3f51b5;
+
+  &::before {
+    background-color: currentColor;
+    border-radius: inherit;
+    bottom: 0;
+    color: inherit;
+    content: "";
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.6, 1);
+  }
+
+  &:hover::before { opacity: 0.1; }
+
+  &.disabled {
+    cursor: default;
+    &:hover::before { opacity: 0; }
+  }
+
+  i {
+    width: 24px;
+    height: 24px;
+
+    &.gps { background-image: url(../../public/icons/24px/crosshairs-gps.png); }
+    &.fitView { background-image: url(../../public/icons/24px/fit-to-page-outline.png); }
+    &.download { background-image: url(../../public/icons/24px/download.png); }
+    &.undo { background-image: url(../../public/icons/24px/undo.png); }
+    &.redo { background-image: url(../../public/icons/24px/redo.png); }
+    &.close { background-image: url(../../public/icons/24px/close.png); }
+  }
+}
+
+div#mindmap {
+  font-size: 14px;
+  position: relative;
+  display: flex;
+
+  div.rightClickTrigger {
+    position: absolute; 
+    width: 100%; 
+    height: 100%
+  }
+
+  div#dummy {
+    div {
+      white-space:pre-wrap;
+      width: max-content;
+    }
+  }
+
+  svg {
+    flex: auto;
+    outline: none;
+    background-color: inherit;
+
+    &.grab { cursor: grab; }
+
+    foreignObject {
+      cursor: default;
+      border-radius: 3px;
+      border: 2px solid transparent;
+
+      &:focus { outline: none; }
+      
+      div {
+        text-align: center;
+        box-sizing: content-box;
+        border: 1px solid transparent;
+        width: max-content;
+        min-width: $minTextWidth;
+        min-height: $minTextHeight;
+        white-space: pre-wrap;
+        color: rgb(109, 109, 109);
+
+        &:focus {
+          border-color: rgb(154, 154, 154);
+          outline: none;
+        }
+      }
+    }
+
+    g.depth_0.node > foreignObject { 
+      background-color: white;
+      border-radius: 5px;
+
+      div {
+        color: rgb(75, 75, 75);
+      }
+    } 
+
+    g.gButton {
+      opacity: 0;
+      > {
+        path {
+          fill: #8685FF;
+        }
+        rect {
+          fill: white;
+          stroke: grey;
+          stroke-width: 0.5;
+        }
+      }
+    }
+
+    g.gEllipsis {
+      opacity: 0;
+
+      &.show { opacity: 1;}
+      circle {
+        fill: black;
+      }
+      &:hover {
+        > rect.btn {
+          stroke: #808080;
+          fill: white
+        }
+
+        circle {
+          fill: #5A5AD2;
+        }
+      }
+    }
+
+    @each $sw in $strokeWidths {
+      &.stroke-width-#{$sw} {
+        path {
+          stroke-width: $sw;
+        }
+      }
+    }
+    
+    path {
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    #selectedNode:not(.depth_0) > foreignObject {
+      background-color: $seleColor;
+    }
+
+    #selectedNode.depth_0 > foreignObject {
+      outline: 3px solid;
+      outline-color: $seleColor;
+    }
+
+    .multiSelectedNode:not(.depth_0) > foreignObject {
+      background-color: $seleColor;
+    }
+
+    .multiSelectedNode.depth_0 > foreignObject {
+      outline: 3px solid;
+      outline-color: $seleColor;
+    }
+
+    #newParentNode > foreignObject {
+      border-color: $seleColor;
+    }
+
+    #editing > foreignObject > div {
+      background-color: white;
+    }
+
+    #selectedBox {
+      color: #393936;
+      opacity: 0.1;
+      stroke: black;
+      stroke-width: 2;
+    }
+  }
+
+  #menu {
+    position: absolute;
+    border-radius: 4px;
+    box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 
+      0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+      0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+    background-color: #EAE9ED;
+    padding: 4px 0;
+    font-weight: 500;
+    color: #3A353D;
+
+    &:focus {
+      outline: none;
+    }
+
+    .menu-item {
+      position: relative;
+      padding: 0px 20px;
+      cursor: pointer;
+
+      &::before {
+        background-color: black;
+        bottom: 0;
+        content: "";
+        left: 0;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+      }
+
+      &:not(.disabled):hover::before {
+        opacity: 0.09;
+      }
+
+      &.disabled {
+        color: #AEB2B5;
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  div.buttonList {
+    position: absolute;
+  
+    &.right-bottom { bottom: 0; right: 0; }
+    &.top-right { top: 0; right: 0; display: flex; flex-direction: row; }
+
+    i { filter: invert(25%) sepia(40%) saturate(5050%) hue-rotate(227deg) brightness(78%) contrast(74%); }
+
+    button.icon.disabled {
+      i { filter: invert(85%) sepia(20%) saturate(0%) hue-rotate(125deg) brightness(86%) contrast(93%); }
+    }
+  }
+
+  div.pop-ups {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    div.layer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      
+      opacity: 0.46;
+      background-color: rgb(33, 33, 33);
+    }
+
+    .content {
+      position: relative;
+      box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 
+        0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+        0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+
+      div.exportTo {
+        background-color: #ECECEC;
+        border-radius: 4px;
+        width: min-content;
+
+        .optionList {
+          padding: 5px;
+          background-color: white;
+          border-top-left-radius: inherit;
+          border-top-right-radius: inherit;
+          display: flex;
+          
+          .option {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 84px;
+            height: 84px;
+            border-radius: 4px;
+            color: #747474;
+
+            &.select { background-color: #E8E8E8; }
+            &.disabled {
+              cursor: not-allowed;
+              .icon { background-color: rgba(0,0,0,.12)!important; }
+            }
+
+            .icon {  
+              padding: 2px;
+              border-radius: 6px;
+              margin-bottom: 10px;
+
+              &.purpleOpt { background-color: #C38EFC; }
+              &.greenOpt { background-color: #4BD964; }
+              &.grassOpt { background-color: #97D439; }
+
+              i {
+                display: block;
+                width: 36px;
+                height: 36px;
+        
+                &.code-json { background-image: url(../../public/icons/36px/code-json.png); }
+                &.image { background-image: url(../../public/icons/36px/image.png); }
+                &.markdown { background-image: url(../../public/icons/36px/markdown.png); }
+              }
+            }
+
+            .text {
+              font-size: 12px;
+            }
+          }
+        }
+
+        .optionTip {
+          padding: 10px 30px;
+          border-top: 1px solid #DDDDDE;
+          border-bottom: 1px solid #DDDDDE;
+        }
+
+        .action {
+          padding: 10px;
+          display: flex;
+
+          .spacer {
+            flex-grow: 1;
+          }
+
+          button {
+            height: 24px;
+            width: 64px;
+            margin: 0 5px;
+            background-color: #3C89FD;
+            color: white;
+            border-radius: 4px;
+
+            &.cancel {
+              background-color: white;
+              color: black;
+            }
+          }
+        }
+      }
+    }
+  }
+}
