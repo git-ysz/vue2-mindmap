@@ -205,6 +205,32 @@ export default class MindMap extends Vue {
       })
     }
   }
+  findIncludesName(children: Mdata[], searchStr: string): boolean { // 查找字符是否在某个集合中
+    // console.log(children)
+    if (children.some(i => i.name.includes(searchStr))) {
+      return true
+    }
+    let flag = false
+    for (let index = 0; index < children.length; index++) {
+      const element = children[index]
+      if (element.collapse || element._children?.length) {
+        flag = this.findIncludesName(element._children || [], searchStr)
+      }
+      if (flag) {
+        break
+      }
+    }
+    return flag
+  }
+  expandIncludesName(gNode: d3.Selection<Element, FlexNode, null, undefined>, searchStr: string) { // 展开包含字符的节点
+    ;(gNode.selectAll('g.gEllipsis.show') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((cd, ci, cn) => {
+      this.expand(cd.data)
+      const children: Mdata[] = cd.data.children?.length ? cd.data.children : (cd.data._children || [])
+      if (this.findIncludesName(children, searchStr)) { // 多级嵌套折叠时，逐级展开
+        this.expandIncludesName(gNode, searchStr)
+      }
+    })
+  }
   searchNode() {
     // 清空已选项
     (d3.selectAll('div.focus') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((d, i, n) => {
@@ -215,17 +241,21 @@ export default class MindMap extends Vue {
       return
     }
     const mindmapG = this.mindmapG.selectAll('g.node') as d3.Selection<Element, FlexNode, Element, FlexNode>
-    mindmapG.filter((d) => {
+    mindmapG.filter((d, i, n) => {
       // 返回字符和search相近的node
-      return !!(d.data.children?.some(i => i.name.includes(searchStr)) || d.data._children?.some(i => i.name.includes(searchStr)))
+      const children: Mdata[] = d.data.children?.length ? d.data.children : (d.data._children || [])
+      return this.findIncludesName(children, searchStr)
     }).each((d, i, n) => {
       const gNode = d3.select(n[i]) as d3.Selection<Element, FlexNode, null, undefined>
+      // console.log(gNode)
       // 将折叠节点的展开
-      ;(gNode.selectAll('g.gEllipsis.show') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((cd) => this.expand(cd.data))
+      this.expandIncludesName(gNode, searchStr)
       // 折叠起来的查不到（在此之前将匹配项的父级展开）
-      const divNode = gNode.selectAll('foreignObject > div') as d3.Selection<Element, FlexNode, Element, FlexNode>
-      // 更改匹配项的背景
-      divNode.filter((cd) => !!cd.data.name.includes(searchStr)).each((cd, ci, cn) => this.selectNodeBySearch(cn[ci] as HTMLDivElement))
+      this.$nextTick(() => {
+        const divNode = gNode.selectAll('foreignObject > div') as d3.Selection<Element, FlexNode, Element, FlexNode>
+        // 更改匹配项的背景
+        divNode.filter((cd) => !!cd.data.name.includes(searchStr)).each((cd, ci, cn) => this.selectNodeBySearch(cn[ci] as HTMLDivElement))
+      })
     })
   }
   mindmapGRightClick(d: FlexNode, i: number, n: ArrayLike<Element>) {

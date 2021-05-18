@@ -17,7 +17,7 @@
       },
       { 
         "name":"安装",
-        "collapse": false,
+        "collapse": true,
         "children": [
           { "name": "折叠节点" }
         ]
