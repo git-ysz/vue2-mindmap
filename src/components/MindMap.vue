@@ -167,7 +167,8 @@ export default class MindMap extends Vue {
   contextMenuY = 0
   mouse = { x0: 0, y0: 0, x1: 0, y1: 0 }
   contextMenuTarget!: Mdata | Mdata[]
-  contextMenuItems = [
+  contextMenuItems: contextMenuItem[] = [
+    { title: '新增子节点', name: 'add', disabled: false, show: this.editable },
     { title: '删除节点', name: 'delete', disabled: false, show: this.editable },
     { title: '折叠节点', name: 'collapse', disabled: false, show: true },
     { title: '展开节点', name: 'expand', disabled: false, show: true },
@@ -185,7 +186,7 @@ export default class MindMap extends Vue {
   history = new History()
   copy(tragetId: string) { // 复制
     this.copySource = mmdata.getSource(tragetId)
-    this.contextMenuItems[4].disabled = false
+    this.contextMenuItems[5].disabled = false
     this.$emit('copy', this.copySource, tragetId)
   }
   paste(parentId: string) { // 粘贴
@@ -770,12 +771,15 @@ export default class MindMap extends Vue {
         .each((d, i, n) => { t.push(d.data) })
       const collapseFlag = t.filter((d) => d.children && d.children.length > 0).length > 0
       const expandFlag = t.filter((d) => d._children && d._children.length > 0).length > 0
-      this.contextMenuItems[1].disabled = !collapseFlag
-      this.contextMenuItems[2].disabled = !expandFlag
       this.contextMenuTarget = t
+      this.contextMenuItems[2].disabled = !collapseFlag
+      this.contextMenuItems[3].disabled = !expandFlag
       if (this.contextMenuTarget.length > 1) {
-        this.contextMenuItems[3].disabled = true
+        this.contextMenuItems[0].disabled = true
         this.contextMenuItems[4].disabled = true
+        this.contextMenuItems[5].disabled = true
+      } else {
+        this.contextMenuItems[0].disabled = false
       }
       show()
     } else if (clickedNode !== edit) { // 非正在编辑
@@ -783,12 +787,13 @@ export default class MindMap extends Vue {
         this.selectNode(clickedNode)
       }
       const { data } = d
-      this.contextMenuItems[1].disabled = !(data.children && data.children.length > 0)
-      this.contextMenuItems[2].disabled = !(data._children && data._children.length > 0)
       this.contextMenuTarget = data
-      this.contextMenuItems[3].disabled = false
+      this.contextMenuItems[0].disabled = false
+      this.contextMenuItems[2].disabled = !(data.children && data.children.length > 0)
+      this.contextMenuItems[3].disabled = !(data._children && data._children.length > 0)
+      this.contextMenuItems[4].disabled = false
       if (this.copySource.name) {
-        this.contextMenuItems[4].disabled = false
+        this.contextMenuItems[5].disabled = false
       }
       show()
     }
@@ -803,6 +808,7 @@ export default class MindMap extends Vue {
       const newD = this.add(d.data.mid, { name: '' })
       this.mouseLeave(d, i, n)
       if (newD) {
+        console.log(d, n[i].parentNode)
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)
       }
     }
@@ -811,6 +817,26 @@ export default class MindMap extends Vue {
     this.showContextMenu = false
     const { contextMenuTarget } = this
     switch (key) {
+      case 'add': {
+        let target: Mdata
+        let sele: d3.Selection<Element, FlexNode, Element, FlexNode>
+        if (Array.isArray(this.contextMenuTarget)) {
+          target = this.contextMenuTarget[0]
+          sele = d3.select('g.multiSelectedNode') as d3.Selection<Element, FlexNode, Element, FlexNode>
+        } else {
+          target = this.contextMenuTarget
+          sele = d3.select('#selectedNode') as d3.Selection<Element, FlexNode, Element, FlexNode>
+        }
+        const seleNode = sele.node()
+        if (target && seleNode) {
+          const seleData = sele.data()[0]
+          const newD = this.add(target.mid, { name: '' })
+          if (newD) {
+            this.editNew(newD, seleData.depth + 1, seleNode as Element)
+          }
+        }
+        break
+      }
       case 'delete':
         this.del(contextMenuTarget)
         break
