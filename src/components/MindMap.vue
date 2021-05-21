@@ -606,7 +606,7 @@ export default class MindMap extends Vue {
           this.paste(im.mid)
         }
       }
-      console.log(keyName)
+      // console.log(keyName)
       switch (keyName) {
         case 'Tab': {
           d3.event.preventDefault()
@@ -1069,14 +1069,29 @@ export default class MindMap extends Vue {
     }
   }
   multiSelectStart() { // 开始多选
+    const event = d3.event
+    // console.log('multiSelectStart', event)
     this.removeSelectedId()
-    if (d3.event.button === 0) { // 左键
+    if (event.button === 0 && !event.ctrlKey) { // 左键
       this.removeMultiSelected()
       this.multiSeleFlag = true
       const { mouse, getViewPos } = this
       const vp = getViewPos()
       mouse.x0 = vp.left
       mouse.y0 = vp.top
+    } else if (event.button === 0 && event.ctrlKey) { // ctrl + 单机，选中节点
+      const d = event.target as Element
+      if (d.tagName.toLocaleLowerCase() !== 'div') {
+        return
+      }
+      const divObj = d.parentNode as Element
+      const gNode = divObj.parentNode as Element
+      // console.dir(gNode)
+      if (!gNode.classList.value.includes('multiSelectedNode')) {
+        gNode.classList.add('multiSelectedNode')
+      } else {
+        gNode.classList.remove('multiSelectedNode')
+      }
     }
   }
   multiSelect() { // 多选中
@@ -1098,11 +1113,7 @@ export default class MindMap extends Vue {
           if (flag) {
             g.classList.add('multiSelectedNode')
           } else {
-            try {
-              g.classList.remove('multiSelectedNode')
-            } catch (error) {
-              console.log(error)
-            }
+            g.classList.remove('multiSelectedNode')
           }
         })
     }
