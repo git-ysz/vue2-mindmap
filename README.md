@@ -33,7 +33,7 @@
 | show-style      | Object           | {}            | 输入框的样式
 | show-class-name | String           | ''            | 输入框的className
 | stroke-width    | Number           | 2             | 设置连线的宽度
-| zoom-step       | Number           | 5             | 缩放频率
+| zoom-step       | Number           | 1             | 缩放频率
 | scale-extent    | [Number, Number] | [0.5, 8]      | 设置缩放范围
 
 ## Data
@@ -56,9 +56,11 @@
 | paste          | data, parentId | 复制的数据，传入复制的数据和父节点id
 
 ## SLOT
-
+zoom-out-btn
 | Name           | Description
 | ---            | ---
+| zoom-out-btn   | 缩小按钮
+| zoom-in-btn    | 放大按钮
 | gps-btn        | 重置定位按钮
 | fit-btn        | 重置大小按钮
 | download-btn   | 下载按钮

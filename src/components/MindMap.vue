@@ -38,6 +38,22 @@
       </div>
     </div>
     <div class="buttonList right-bottom">
+      <template v-if="zoomable">
+        <div @click="scaleView(true)">
+          <slot name="zoom-in-btn">
+            <button class="icon" ref="zoomIn" type="button">
+              <i class="zoom-in"></i>
+            </button>
+          </slot>
+        </div>
+        <div @click="scaleView(false)">
+          <slot name="zoom-out-btn">
+            <button class="icon" ref="zoomOut" type="button">
+              <i class="zoom-out"></i>
+            </button>
+          </slot>
+        </div>
+      </template>
       <div v-if="gps" @click="makeCenter()">
         <slot name="gps-btn">
           <button class="icon" ref="gps" type="button">
@@ -107,7 +123,7 @@ export default class MindMap extends Vue {
   @Prop({ default: true }) editable!: boolean
   @Prop({ default: 2 }) strokeWidth!: number
   // 缩放频率
-  @Prop({ default: 5 }) zoomStep!: number
+  @Prop({ default: 1 }) zoomStep!: number
   // 缩放限制
   @Prop({ default: () => [0.5, 8] }) scaleExtent!: [number, number]
   // 搜索框
@@ -184,14 +200,31 @@ export default class MindMap extends Vue {
   link = d3.linkHorizontal().x((d) => d[0]).y((d) => d[1])
   zoom = d3.zoom() as d3.ZoomBehavior<Element, FlexNode>
   history = new History()
+
+  // 按一定程度缩放，true时放大，false缩小
+  scaleView(flag: boolean) {
+    try {
+      this.zoom.scaleBy(this.mindmapSvg, flag ? 1.1 : 0.9)
+    } catch (error) {
+      console.warn('缩放:', error)
+    }
+  }
   copy(tragetId: string) { // 复制
-    this.copySource = mmdata.getSource(tragetId)
-    this.contextMenuItems[5].disabled = false
-    this.$emit('copy', this.copySource, tragetId)
+    try {
+      this.copySource = mmdata.getSource(tragetId)
+      this.contextMenuItems[5].disabled = false
+      this.$emit('copy', this.copySource, tragetId)
+    } catch (error) {
+      console.warn('复制:', error)
+    }
   }
   paste(parentId: string) { // 粘贴
-    this.add(parentId, this.copySource)
-    this.$emit('paste', this.copySource, parentId)
+    try {
+      this.add(parentId, this.copySource)
+      this.$emit('paste', this.copySource, parentId)
+    } catch (error) {
+      console.warn('粘贴:', error)
+    }
   }
   async selectNodeBySearch(n: HTMLDivElement) {
     try {
@@ -242,8 +275,8 @@ export default class MindMap extends Vue {
       }
     })
   }
-  searchNode() {
-    // 清空已选项
+  searchNode() { // 搜索节点
+    // 清空上一次搜索出来的节点
     (d3.selectAll('div.focus') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((d, i, n) => {
       (n[i] as HTMLDivElement).setAttribute('class', '')
     })
@@ -251,10 +284,11 @@ export default class MindMap extends Vue {
     if (!searchStr) {
       return
     }
+    // 所有未折叠节点
     const mindmapG = this.mindmapG.selectAll('g.node') as d3.Selection<Element, FlexNode, Element, FlexNode>
     mindmapG.each((d, i, n) => {
       const gNode = d3.select(n[i]) as d3.Selection<Element, FlexNode, null, undefined>
-      // 将折叠节点的展开
+      // 将匹配项的折叠节点的展开
       this.expandIncludesName(gNode, searchStr)
       // 折叠起来的查不到（在此之前将匹配项的父级展开）
       this.$nextTick(() => {
@@ -403,7 +437,7 @@ export default class MindMap extends Vue {
             const svgPos = this.$refs.svg.getBoundingClientRect()
             const px = svgPos.left + window.pageXOffset
             const py = svgPos.top + window.pageYOffset
-            const k = current.k - deltaY * (this.zoomStep / 10000)
+            const k = current.k - deltaY * (this.zoomStep / 1000)
             zoom.scaleTo(mindmapSvg, k, [x - px, y - py])
           } else { // 移动
             zoom.translateBy(mindmapSvg, -deltaX, -deltaY)
