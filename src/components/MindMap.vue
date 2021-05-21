@@ -606,6 +606,7 @@ export default class MindMap extends Vue {
           this.paste(im.mid)
         }
       }
+      console.log(keyName)
       switch (keyName) {
         case 'Tab': {
           d3.event.preventDefault()
@@ -617,17 +618,20 @@ export default class MindMap extends Vue {
         }
         case 'Enter': {
           d3.event.preventDefault()
-          if (pNode === this.$refs.content) { // 根节点enter时，等效tab
-            const nd = this.add(im.mid, { name: '' })
-            if (nd) {
-              this.editNew(nd, seleDepth + 1, pNode)
-            }
-          } else {
-            const nd = this.insert(im, { name: '' }, 1)
-            if (nd) {
-              this.editNew(nd, seleDepth, pNode)
-            }
-          }
+          // 进入编辑状态
+          this.editNew(im, seleDepth, pNode)
+          // 添加兄弟节点
+          // if (pNode === this.$refs.content) { // 根节点enter时，等效tab
+          //   const nd = this.add(im.mid, { name: '' })
+          //   if (nd) {
+          //     this.editNew(nd, seleDepth + 1, pNode)
+          //   }
+          // } else {
+          //   const nd = this.insert(im, { name: '' }, 1)
+          //   if (nd) {
+          //     this.editNew(nd, seleDepth, pNode)
+          //   }
+          // }
           break
         }
         case 'Backspace': {
@@ -640,6 +644,35 @@ export default class MindMap extends Vue {
           this.del(im)
           break
         }
+        // case 'ArrowRight': {
+        //   if (im.left && pNode) {
+        //     this.selectNode(pNode)
+        //   } else if (seleNode.querySelector('g.node')) {
+        //     this.selectNode(seleNode.querySelector('g.node') as Element)
+        //   }
+        //   break
+        // }
+        // case 'ArrowLeft': {
+        //   // console.log(im, seleNode.querySelector('g.node'), pNode)
+        //   if (im.left && seleNode.querySelector('g.node')) {
+        //     this.selectNode(seleNode.querySelector('g.node') as Element)
+        //   } else if (im.mid === '0') {
+        //     for (let dex = 0; dex < seleNode.children.length; dex++) {
+        //       const ele = seleNode.children[dex]
+        //       console.log(ele, ele?.data)
+        //       // d3.select() as d3.Selection<Element, FlexNode, Element, FlexNode>
+        //       // if (ele?.__data__?.data.left) {
+        //       //   this.selectNode(ele)
+        //       //   break
+        //       // }
+        //     }
+        //   } else if (!im.left && pNode) {
+        //     this.selectNode(pNode)
+        //   }
+        //   break
+        // }
+        // ArrowUp
+        // ArrowDown
         default:
           break
       }
@@ -654,11 +687,13 @@ export default class MindMap extends Vue {
         case 'Enter': {
           const editP = document.querySelector('#editing > foreignObject > div') as HTMLDivElement
           editP.setAttribute('contenteditable', 'false')
+          // editP.blur()
           break
         }
         case 'Escape': {
           const editP = document.querySelector('#editing > foreignObject > div') as HTMLDivElement
           editP.setAttribute('contenteditable', 'false')
+          // editP.blur()
           break
         }
         default:
