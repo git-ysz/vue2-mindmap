@@ -25,6 +25,7 @@
 | download        | Boolean          | true          | 是否显示下载按钮
 | keyboard        | Boolean          | true          | 是否响应键盘事件
 | show-node-add   | Boolean          | true          | 是否显示添加节点按钮
+| custom-add      | Boolean          | false         | 是否自定义点击添加按钮事件
 | context-menu    | Boolean          | true          | 是否响应右键菜单
 | zoomable        | Boolean          | true          | 是否可缩放、拖移
 | show-undo       | Boolean          | true          | 是否显示撤销重做按钮
@@ -41,19 +42,21 @@
 | Name           | Type      | Description
 | ---            | ---            | ---
 | name           | String         | 节点名称
+| mid            | String         | 节点唯一id，自动生成
 | collapse       | data           | 是否折叠
 | left           | Booble         | 节点是否在左侧显示
 | children       | Array(Data)    | 子节点
 
 ## EVENTS
 
-| Name           | arguments      | Description
-| ---            | ---            | ---
-| updateNodeName | data, id       | 更新节点名称时，传入节点数据和节点id
-| change         | data           | 更新节点名称时，传入节点数据
-| click          | data, id       | 点击节点时，传入节点数据和节点id
-| copy           | data, tragetId | 需要复制的数据，传入复制的数据和节点id
-| paste          | data, parentId | 复制的数据，传入复制的数据和父节点id
+| Name           | arguments            | Description
+| ---            | ---                  | ---
+| updateNodeName | data, mid            | 更新节点名称时，传入节点数据和节点id
+| change         | data                 | 更新节点名称时，传入节点数据
+| click          | data, mid            | 点击节点时，传入节点数据和节点id
+| copy           | data, tragetId       | 需要复制的数据，传入复制的数据和节点id
+| paste          | data, parentId       | 复制的数据，传入复制的数据和父节点id
+| customAdd      | mid                  | 点击添加节点按钮时响应事件(custom-add为true时触发)，传入节点id
 
 ## SLOT
 zoom-out-btn

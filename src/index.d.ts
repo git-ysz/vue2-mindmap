@@ -34,10 +34,3 @@ interface FlexNode {
   px: number
   py: number
 }
-
-interface contextMenuItem {
-  title?: string
-  name: string
-  disabled?: boolean
-  show?: boolean
-}

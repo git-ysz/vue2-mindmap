@@ -116,6 +116,8 @@ export default class MindMap extends Vue {
   @Prop({ default: true }) download!: boolean
   @Prop({ default: true }) keyboard!: boolean
   @Prop({ default: true }) showNodeAdd!: boolean
+  // 自定义添加，点击gBtn时，响应$emit('customAdd')事件
+  @Prop({ default: false }) customAdd!: boolean
   @Prop({ default: true }) contextMenu!: boolean
   @Prop({ default: true }) zoomable!: boolean
   @Prop({ default: true }) showUndo!: boolean
@@ -136,8 +138,15 @@ export default class MindMap extends Vue {
 
   @Watch('keyboard')
   onKeyboardChanged(val: boolean) { this.makeKeyboard(val) }
+  @Watch('editable')
+  onEditableChanged(val: boolean) {
+    this.makeNodeAdd(this.showNodeAdd)
+    this.makeDrag(this.draggable)
+  }
   @Watch('showNodeAdd')
   onShowNodeAddChanged(val: boolean) { this.makeNodeAdd(val) }
+  @Watch('customAdd')
+  onCustomAddChanged(val: boolean) { this.makeNodeAdd(this.showNodeAdd) }
   @Watch('draggable')
   onDraggableChanged(val: boolean) { this.makeDrag(val) }
   @Watch('contextMenu')
@@ -183,11 +192,11 @@ export default class MindMap extends Vue {
   contextMenuY = 0
   mouse = { x0: 0, y0: 0, x1: 0, y1: 0 }
   contextMenuTarget!: Mdata | Mdata[]
-  contextMenuItems: contextMenuItem[] = [
+  contextMenuItems = [
     { title: '新增子节点', name: 'add', disabled: false, show: this.editable },
     { title: '删除节点', name: 'delete', disabled: false, show: this.editable },
     { title: '折叠节点', name: 'collapse', disabled: false, show: true },
-    { title: '展开节点', name: 'expand', disabled: false, show: true },
+    { title: '展开节点', name: 'expand', disabled: false, show: true, children: [] },
     { title: '复制节点', name: 'copy', disabled: false, show: this.editable },
     { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
   ]
@@ -841,19 +850,20 @@ export default class MindMap extends Vue {
     }
     if (clickedNode.classList.contains('multiSelectedNode')) {
       const t: Mdata[] = []
-      ;(this.mindmapG.selectAll('g.multiSelectedNode') as d3.Selection<Element, FlexNode, Element, FlexNode>)
-        .each((d, i, n) => { t.push(d.data) })
+      ;(this.mindmapG.selectAll('g.multiSelectedNode') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((d, i, n) => { t.push(d.data) })
       const collapseFlag = t.filter((d) => d.children && d.children.length > 0).length > 0
       const expandFlag = t.filter((d) => d._children && d._children.length > 0).length > 0
       this.contextMenuTarget = t
       this.contextMenuItems[2].disabled = !collapseFlag
       this.contextMenuItems[3].disabled = !expandFlag
-      if (this.contextMenuTarget.length > 1) {
+      if (this.contextMenuTarget.length === 1) {
+        this.contextMenuItems[0].disabled = false
+        this.contextMenuItems[4].disabled = false
+        this.contextMenuItems[5].disabled = !this.copySource.name
+      } else {
         this.contextMenuItems[0].disabled = true
         this.contextMenuItems[4].disabled = true
         this.contextMenuItems[5].disabled = true
-      } else {
-        this.contextMenuItems[0].disabled = false
       }
       show()
     } else if (clickedNode !== edit) { // 非正在编辑
@@ -876,13 +886,15 @@ export default class MindMap extends Vue {
     if (d3.event.buttons === 2) { // 右键不响应
       return
     }
-    if ((n[i] as SVGElement).style.opacity === '1') {
+    if (this.customAdd) {
+      this.$emit('customAdd', a.data.mid)
+    } else if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
       const newD = this.add(d.data.mid, { name: '' })
       this.mouseLeave(d, i, n)
       if (newD) {
-        console.log(d, n[i].parentNode)
+        // console.log(d, n[i].parentNode)
         this.editNew(newD, d.depth + 1, n[i].parentNode as Element)
       }
     }
@@ -920,12 +932,26 @@ export default class MindMap extends Vue {
       case 'expand':
         this.expand(contextMenuTarget)
         break
-      case 'copy':
-        this.copy((this.contextMenuTarget as Mdata).mid)
+      case 'copy': {
+        let target: Mdata
+        if (Array.isArray(this.contextMenuTarget)) {
+          target = this.contextMenuTarget[0]
+        } else {
+          target = this.contextMenuTarget
+        }
+        this.copy(target.mid)
         break
-      case 'paste':
-        this.paste((this.contextMenuTarget as Mdata).mid)
+      }
+      case 'paste': {
+        let target: Mdata
+        if (Array.isArray(this.contextMenuTarget)) {
+          target = this.contextMenuTarget[0]
+        } else {
+          target = this.contextMenuTarget
+        }
+        this.paste(target.mid)
         break
+      }
       default:
         break
     }
@@ -1087,7 +1113,7 @@ export default class MindMap extends Vue {
       const divObj = d.parentNode as Element
       const gNode = divObj.parentNode as Element
       // console.dir(gNode)
-      if (!gNode.classList.value.includes('multiSelectedNode')) {
+      if (!gNode.classList.contains('multiSelectedNode')) {
         gNode.classList.add('multiSelectedNode')
       } else {
         gNode.classList.remove('multiSelectedNode')
@@ -1202,7 +1228,11 @@ export default class MindMap extends Vue {
 
     const gBtn = gNode.append('g').attr('class', 'gButton').attr('transform', gBtnTransform).style('visibility', gBtnVisible)
     gBtn.append('rect').attr('width', gBtnSide).attr('height', gBtnSide).attr('rx', 3).attr('ry', 3)
-    gBtn.append('path').attr('d', 'M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z')
+    // gBtn.append('path').attr('d', 'M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z')
+    const mg = 6 // 边距
+    // 根据参数gBtnSide绘制十字
+    const dPath = `M ${gBtnSide / 2} ${mg} L ${gBtnSide / 2} ${gBtnSide - mg} M ${mg} ${gBtnSide / 2} L ${gBtnSide - mg} ${gBtnSide / 2}`
+    gBtn.append('path').attr('d', dPath).attr('stroke', '#8685FF')
 
     const ell = gNode.append('g').attr('class', 'gEllipsis').attr('transform', gEllTransform).style('visibility', gEllVisible)
       .classed('show', (d: FlexNode) => (d.data._children?.length || 0) > 0)

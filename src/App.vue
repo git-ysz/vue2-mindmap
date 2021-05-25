@@ -7,6 +7,7 @@
             <v-row no-gutters class="fill-height">
               <mindmap
                 v-model="mmdata"
+                ref="mind"
                 @updateNodeName="updateNodeName"
                 @click="click"
                 @change="change"
