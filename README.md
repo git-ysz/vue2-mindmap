@@ -39,11 +39,12 @@
 
 ## Data
 
-| Name           | Type      | Description
+| Name           | Type           | Description
 | ---            | ---            | ---
 | name           | String         | 节点名称
 | mid            | String         | 节点唯一id，自动生成
-| collapse       | data           | 是否折叠
+| collapse       | Booble         | 是否折叠
+| customAddBtn   | Booble         | 是否自定义点击“添加节点按钮”事件，为true时响应customAdd事件
 | left           | Booble         | 节点是否在左侧显示
 | children       | Array(Data)    | 子节点
 

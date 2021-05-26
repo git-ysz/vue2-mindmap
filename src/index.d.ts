@@ -3,6 +3,7 @@ interface Data {
   children?: Array<Data>
   _children?: Array<Data>
   collapse?: boolean
+  customAddBtn?: boolean // 自定义点击gBtn事件
   left?: boolean
 }
 
@@ -15,6 +16,7 @@ interface Mdata {
   children?: Array<Mdata>
   _children?: Array<Mdata>
   collapse?: boolean
+  customAddBtn?: boolean // 自定义点击gBtn事件
   left: boolean
 }
 

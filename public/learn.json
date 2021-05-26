@@ -31,6 +31,7 @@
           { "name":"添加删除元素" },
           {
             "name":"简单图形",
+            "customAddBtn": true,
             "children":
             [
               { "name":"柱形图" },

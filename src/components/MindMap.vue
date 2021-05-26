@@ -886,7 +886,10 @@ export default class MindMap extends Vue {
     if (d3.event.buttons === 2) { // 右键不响应
       return
     }
-    if (this.customAdd) {
+    // customAddBtn
+    console.log(a)
+    if (this.customAdd || a.data.customAddBtn) {
+      console.log('自定义添加')
       this.$emit('customAdd', a.data.mid)
     } else if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
