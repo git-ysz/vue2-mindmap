@@ -199,6 +199,28 @@ class ImData {
     }
   }
 
+  expandAll(mid: string | string[], level?: number) { // 展开下级节点（level:控制展开的层级数）
+    const arr = Array.isArray(mid) ? mid : [mid]
+    for (let i = 0; i < arr.length; i++) {
+      const idChild = arr[i]
+      const d = this.find(idChild)
+      if (d) {
+        d.collapse = false
+        if (!d.children || !d.children.length) {
+          d.children = d._children
+        }
+        d._children = []
+        if (d?.children && d?.children.length && level !== 0) {
+          if (level === undefined) {
+            this.expandAll(d.children.map(i => i.mid))
+          } else {
+            this.expandAll(d.children.map(i => i.mid), level - 1)
+          }
+        }
+      }
+    }
+  }
+
   del(mid: string | string[]) { // 删除指定id的数据
     const arr = Array.isArray(mid) ? mid : [mid]
     let p

@@ -28,9 +28,9 @@
       @blur="showContextMenu = false"
     >
       <div
-        v-for="(item, index) in contextMenuItems"
+        v-for="item in contextMenuItems"
         v-show="item.show"
-        :key="index"
+        :key="item.name"
         :class="`menu-item ${item.disabled ? 'disabled' : ''}`"
         @click="item.disabled ? null : clickMenu(item.name)"
       >
@@ -192,14 +192,64 @@ export default class MindMap extends Vue {
   contextMenuY = 0
   mouse = { x0: 0, y0: 0, x1: 0, y1: 0 }
   contextMenuTarget!: Mdata | Mdata[]
-  contextMenuItems = [
-    { title: '新增子节点', name: 'add', disabled: false, show: this.editable },
-    { title: '删除节点', name: 'delete', disabled: false, show: this.editable },
-    { title: '折叠节点', name: 'collapse', disabled: false, show: true },
-    { title: '展开节点', name: 'expand', disabled: false, show: true, children: [] },
-    { title: '复制节点', name: 'copy', disabled: false, show: this.editable },
-    { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
-  ]
+  // contextMenuItems = [
+  //   { title: '新增子节点', name: 'add', disabled: false, show: this.editable },
+  //   { title: '删除节点', name: 'delete', disabled: false, show: this.editable },
+  //   { title: '折叠节点', name: 'collapse', disabled: false, show: true },
+  //   { title: '展开节点', name: 'expand', disabled: false, show: true },
+  //   { title: '复制节点', name: 'copy', disabled: false, show: this.editable },
+  //   { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
+  // ]
+  contextMenuItems = {
+    add: {
+      title: '新增子节点',
+      name: 'add',
+      disabled: false,
+      show: this.editable,
+    },
+    delete: {
+      title: '删除节点',
+      name: 'delete',
+      disabled: false,
+      show: this.editable,
+    },
+    collapse: {
+      title: '折叠节点',
+      name: 'collapse',
+      disabled: false,
+      show: true,
+    },
+    expand: {
+      title: '展开节点',
+      name: 'expand',
+      disabled: false,
+      show: true,
+    },
+    expandNextLevel: {
+      title: '展开下级',
+      name: 'expandNextLevel',
+      disabled: false,
+      show: true,
+    },
+    expandAll: {
+      title: '展开全部',
+      name: 'expandAll',
+      disabled: false,
+      show: true,
+    },
+    copy: {
+      title: '复制节点',
+      name: 'copy',
+      disabled: false,
+      show: this.editable,
+    },
+    paste: {
+      title: '粘贴为子节点',
+      name: 'paste',
+      disabled: true,
+      show: this.editable,
+    },
+  }
   mindmapSvgDiv!: d3.Selection<HTMLDivElement, FlexNode, null, undefined>
   mindmapSvg!: d3.Selection<Element, FlexNode, null, undefined>
   mindmapG!: d3.Selection<Element, FlexNode, null, undefined>
@@ -221,7 +271,7 @@ export default class MindMap extends Vue {
   copy(tragetId: string) { // 复制
     try {
       this.copySource = mmdata.getSource(tragetId)
-      this.contextMenuItems[5].disabled = false
+      this.contextMenuItems.paste.disabled = false
       this.$emit('copy', this.copySource, tragetId)
     } catch (error) {
       console.warn('复制:', error)
@@ -583,6 +633,20 @@ export default class MindMap extends Vue {
     }
     this.updateMmdata()
   }
+  expandAll(s: Mdata | Mdata[], level?: number) {
+    this.toRecord = true
+    // console.log(s)
+    if (Array.isArray(s)) {
+      const idArr = []
+      for (let i = 0; i < s.length; i++) {
+        idArr.push(s[i].mid)
+      }
+      mmdata.expandAll(idArr, level)
+    } else {
+      mmdata.expandAll(s.mid, level)
+    }
+    this.updateMmdata()
+  }
   // 键盘
   svgKeyDown() {
     const event = d3.event
@@ -854,16 +918,18 @@ export default class MindMap extends Vue {
       const collapseFlag = t.filter((d) => d.children && d.children.length > 0).length > 0
       const expandFlag = t.filter((d) => d._children && d._children.length > 0).length > 0
       this.contextMenuTarget = t
-      this.contextMenuItems[2].disabled = !collapseFlag
-      this.contextMenuItems[3].disabled = !expandFlag
+      this.contextMenuItems.collapse.disabled = !collapseFlag
+      this.contextMenuItems.expand.disabled = !expandFlag
+      // this.contextMenuItems.expandNextLevel.disabled = !expandFlag
+      // this.contextMenuItems.expandAll.disabled = !expandFlag
       if (this.contextMenuTarget.length === 1) {
-        this.contextMenuItems[0].disabled = false
-        this.contextMenuItems[4].disabled = false
-        this.contextMenuItems[5].disabled = !this.copySource.name
+        this.contextMenuItems.add.disabled = false
+        this.contextMenuItems.copy.disabled = false
+        this.contextMenuItems.paste.disabled = !this.copySource.name
       } else {
-        this.contextMenuItems[0].disabled = true
-        this.contextMenuItems[4].disabled = true
-        this.contextMenuItems[5].disabled = true
+        this.contextMenuItems.add.disabled = true
+        this.contextMenuItems.copy.disabled = true
+        this.contextMenuItems.paste.disabled = true
       }
       show()
     } else if (clickedNode !== edit) { // 非正在编辑
@@ -872,12 +938,14 @@ export default class MindMap extends Vue {
       }
       const { data } = d
       this.contextMenuTarget = data
-      this.contextMenuItems[0].disabled = false
-      this.contextMenuItems[2].disabled = !(data.children && data.children.length > 0)
-      this.contextMenuItems[3].disabled = !(data._children && data._children.length > 0)
-      this.contextMenuItems[4].disabled = false
+      this.contextMenuItems.add.disabled = false
+      this.contextMenuItems.collapse.disabled = !(data.children && data.children.length > 0)
+      this.contextMenuItems.expand.disabled = !(data._children && data._children.length > 0)
+      // this.contextMenuItems.expandNextLevel.disabled = !(data._children && data._children.length > 0)
+      // this.contextMenuItems.expandAll.disabled = !(data._children && data._children.length > 0)
+      this.contextMenuItems.copy.disabled = false
       if (this.copySource.name) {
-        this.contextMenuItems[5].disabled = false
+        this.contextMenuItems.paste.disabled = false
       }
       show()
     }
@@ -887,9 +955,9 @@ export default class MindMap extends Vue {
       return
     }
     // customAddBtn
-    console.log(a)
+    // console.log(a)
     if (this.customAdd || a.data.customAddBtn) {
-      console.log('自定义添加')
+      // console.log('自定义添加')
       this.$emit('customAdd', a.data.mid)
     } else if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
@@ -934,6 +1002,12 @@ export default class MindMap extends Vue {
         break
       case 'expand':
         this.expand(contextMenuTarget)
+        break
+      case 'expandNextLevel':
+        this.expandAll(contextMenuTarget, 1)
+        break
+      case 'expandAll':
+        this.expandAll(contextMenuTarget)
         break
       case 'copy': {
         let target: Mdata
