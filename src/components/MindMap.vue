@@ -954,10 +954,10 @@ export default class MindMap extends Vue {
     if (d3.event.buttons === 2) { // 右键不响应
       return
     }
-    // customAddBtn
-    // console.log(a)
     if (this.customAdd || a.data.customAddBtn) {
-      // console.log('自定义添加')
+      d3.event.stopPropagation()
+      const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
+      this.mouseLeave(d, i, n)
       this.$emit('customAdd', a.data.mid)
     } else if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
