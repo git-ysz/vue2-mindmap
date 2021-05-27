@@ -1,10 +1,12 @@
 [
   {
     "name":"如何学习D3",
+    "ceshi": "测试属性",
     "children":
     [
       {
         "name":"预备知识",
+        "ceshi": "测试属性1",
         "collapse": true,
         "children": [
           { "name":"HTML" },

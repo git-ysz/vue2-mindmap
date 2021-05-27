@@ -41,23 +41,24 @@ function initSize(d: Mdata) { // 初始化size
   }
 }
 
-function _getSource(d: Mdata) { // 返回源数据
+function _getSource(d: Mdata) { // 返回源数据(未折叠的，无_children)
   const { children, _children } = d
   const nd: Data = { name: d.name }
   nd.left = d.left
+  // 添加自定义属性（要更新Mdata Data类型）
+  nd.id = d.id
   nd.collapse = d.collapse
-  if (children) {
+  if (children?.length) {
     const { length } = children
     nd.children = new Array(length)
     for (let i = 0; i < length; i++) {
       nd.children[i] = _getSource(children[i])
     }
-  }
-  if (_children) {
+  } else if (_children?.length) {
     const { length } = _children
-    nd._children = new Array(length)
+    nd.children = new Array(length)
     for (let i = 0; i < length; i++) {
-      nd._children[i] = _getSource(_children[i])
+      nd.children[i] = _getSource(_children[i])
     }
   }
   return nd
@@ -67,13 +68,21 @@ function initId(d: Mdata, mid = '0') { // 初始化唯一标识：待优化
   d.mid = mid
   d.gKey = d.gKey || (gKey += 1)
   const { children, _children, collapse } = d
-
+  // console.log(11)
   if (children?.length && _children?.length) {
     console.error('[Mindmap warn]: Error in data: data.children and data._children cannot contain data at the same time')
   } else {
-    if (collapse && d.children?.length) {
-      d._children = d.children
+    // if (collapse && d.children?.length) {
+    //   d._children = d.children
+    //   d.children = []
+    // }
+    // 实时更新数据
+    if (collapse) {
+      d._children = d._children?.length ? d._children : d.children
       d.children = []
+    } else {
+      d.children = d.children?.length ? d.children : d._children
+      d._children = []
     }
     if (children) {
       for (let i = 0; i < children.length;) {
@@ -123,7 +132,7 @@ class ImData {
     initSize(this.data)
 
     this.data.left = false
-    this.data.collapse = false
+    // this.data.collapse = false
     const { children, _children } = this.data
     if (children) {
       for (let i = 0; i < children.length; i += 1) {

@@ -268,9 +268,12 @@ export default class MindMap extends Vue {
       console.warn('缩放:', error)
     }
   }
+  getSource(mid?: string) { // 获取数据源mid的数据源
+    return mmdata.getSource(mid)
+  }
   copy(tragetId: string) { // 复制
     try {
-      this.copySource = mmdata.getSource(tragetId)
+      this.copySource = this.getSource(tragetId)
       this.contextMenuItems.paste.disabled = false
       this.$emit('copy', this.copySource, tragetId)
     } catch (error) {
@@ -372,7 +375,7 @@ export default class MindMap extends Vue {
       console.warn(error)
     } finally {
       this.$nextTick(() => {
-        const data = mmdata.getSource()
+        const data = this.getSource()
         const filename = data.name + '.png'
         exportImg(this.$refs.mindmapSvgDiv, filename)
       })
@@ -416,7 +419,7 @@ export default class MindMap extends Vue {
     }
     this.updateMindmap()
     this.toUpdate = false
-    this.$emit('change', [mmdata.getSource()])
+    this.$emit('change', [this.getSource()])
   }
   init() {
     // 绑定元素
@@ -788,7 +791,7 @@ export default class MindMap extends Vue {
       (n[i] as Element).removeAttribute('id')
       const nd = this.updateName(d.data, editText)
       if (nd && editText) {
-        const d = mmdata.getSource(nd.mid)
+        const d = this.getSource(nd.mid)
         if (d.name) {
           this.$emit('updateNodeName', d, nd.mid)
         }
@@ -894,7 +897,7 @@ export default class MindMap extends Vue {
       } else {
         sele.setAttribute('__click__', '1')
         if (!dragFlag) {
-          this.$emit('click', mmdata.getSource(d.data.mid), d.data.mid)
+          this.$emit('click', this.getSource(d.data.mid), d.data.mid)
         }
       }
     }

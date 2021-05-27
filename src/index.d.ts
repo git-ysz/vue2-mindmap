@@ -1,5 +1,6 @@
 interface Data {
   name: string
+  id?: number | string
   children?: Array<Data>
   _children?: Array<Data>
   collapse?: boolean
@@ -9,6 +10,7 @@ interface Data {
 
 interface Mdata {
   name: string
+  id?: number | string
   mid: string
   color: string
   gKey: number
