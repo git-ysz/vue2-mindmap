@@ -45,9 +45,9 @@ function _getSource(d: Mdata) { // 返回源数据(未折叠的，无_children)
   const { children, _children } = d
   const nd: Data = { name: d.name }
   nd.left = d.left
-  // 添加自定义属性（要更新Mdata Data类型）
-  nd.id = d.id
   nd.collapse = d.collapse
+  // 添加自定义属性（要更新Mdata Data类型）
+  // ...
   if (children?.length) {
     const { length } = children
     nd.children = new Array(length)
@@ -60,6 +60,8 @@ function _getSource(d: Mdata) { // 返回源数据(未折叠的，无_children)
     for (let i = 0; i < length; i++) {
       nd.children[i] = _getSource(_children[i])
     }
+  } else {
+    nd.children = []
   }
   return nd
 }

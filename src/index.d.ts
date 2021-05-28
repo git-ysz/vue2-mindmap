@@ -1,16 +1,13 @@
 interface Data {
   name: string
-  id?: number | string
   children?: Array<Data>
   _children?: Array<Data>
   collapse?: boolean
-  customAddBtn?: boolean // 自定义点击gBtn事件
   left?: boolean
 }
 
 interface Mdata {
   name: string
-  id?: number | string
   mid: string
   color: string
   gKey: number
