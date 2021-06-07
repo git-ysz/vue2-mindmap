@@ -55,6 +55,7 @@
 | updateNodeName | data, mid            | 更新节点名称时，传入节点数据和节点id
 | change         | data                 | 更新节点名称时，传入节点数据
 | click          | data, mid            | 点击节点时，传入节点数据和节点id
+| valid          | data                 | 置为有效
 | copy           | data, tragetId       | 需要复制的数据，传入复制的数据和节点id
 | paste          | data, parentId       | 复制的数据，传入复制的数据和父节点id
 | customAdd      | mid                  | 点击添加节点按钮时响应事件(custom-add为true时触发)，传入节点id

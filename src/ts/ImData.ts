@@ -41,28 +41,37 @@ function initSize(d: Mdata) { // 初始化size
   }
 }
 
-function _getSource(d: Mdata) { // 返回源数据(未折叠的，无_children)
+function _getSource(d: Mdata, parentData?: Data) { // 返回源数据(未折叠的，无_children)
   const { children, _children } = d
   const nd: Data = { name: d.name }
+  let isValid = d.isValid
+  if (parentData) {
+    // console.log(parentData.isValid, isValid)
+    if (parentData.isValid === false && isValid === undefined) {
+      isValid = parentData.isValid
+    }
+  }
   nd.left = d.left
   nd.collapse = d.collapse
+  nd.isValid = isValid === undefined ? true : isValid
   // 添加自定义属性（要更新Mdata Data类型）
   // ...
   if (children?.length) {
     const { length } = children
     nd.children = new Array(length)
     for (let i = 0; i < length; i++) {
-      nd.children[i] = _getSource(children[i])
+      nd.children[i] = _getSource(children[i], nd)
     }
   } else if (_children?.length) {
     const { length } = _children
     nd.children = new Array(length)
     for (let i = 0; i < length; i++) {
-      nd.children[i] = _getSource(_children[i])
+      nd.children[i] = _getSource(_children[i], nd)
     }
   } else {
     nd.children = []
   }
+  // console.log(nd)
   return nd
 }
 
@@ -149,6 +158,7 @@ class ImData {
   }
 
   getSource(mid = '0') {
+    // console.log('getSource')
     const d = this.find(mid)
     return d ? _getSource(d) : { name: '' }
   }
@@ -181,6 +191,23 @@ class ImData {
         d.size = size(name, d.mid === '0')
       }
       return d
+    }
+  }
+
+  setValid(mid: string | string[], value: boolean) { // 设置有效标记
+    const arr = Array.isArray(mid) ? mid : [mid]
+    // const d = this.find(mid)
+    for (let i = 0; i < arr.length; i++) {
+      const idChild = arr[i]
+      const d = this.find(idChild)
+      if (d) {
+        d.isValid = value
+        if (d.children?.length) {
+          this.setValid(d.children.map(k => k.mid), value)
+        } else if (d._children?.length) {
+          this.setValid(d._children.map(k => k.mid), value)
+        }
+      }
     }
   }
 

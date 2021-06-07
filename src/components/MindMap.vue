@@ -201,6 +201,12 @@ export default class MindMap extends Vue {
   //   { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
   // ]
   contextMenuItems = {
+    valid: {
+      title: '置为有效',
+      name: 'valid',
+      disabled: true,
+      show: this.editable,
+    },
     add: {
       title: '新增子节点',
       name: 'add',
@@ -220,7 +226,7 @@ export default class MindMap extends Vue {
       show: true,
     },
     expand: {
-      title: '展开节点',
+      title: '展开此节点',
       name: 'expand',
       disabled: false,
       show: true,
@@ -232,7 +238,7 @@ export default class MindMap extends Vue {
       show: true,
     },
     expandAll: {
-      title: '展开全部',
+      title: '展开所有下级',
       name: 'expandAll',
       disabled: false,
       show: true,
@@ -941,6 +947,7 @@ export default class MindMap extends Vue {
       }
       const { data } = d
       this.contextMenuTarget = data
+      this.contextMenuItems.valid.disabled = data.isValid !== false
       this.contextMenuItems.add.disabled = false
       this.contextMenuItems.collapse.disabled = !(data.children && data.children.length > 0)
       this.contextMenuItems.expand.disabled = !(data._children && data._children.length > 0)
@@ -977,6 +984,22 @@ export default class MindMap extends Vue {
     this.showContextMenu = false
     const { contextMenuTarget } = this
     switch (key) {
+      case 'valid': {
+        let target: Mdata
+        if (Array.isArray(this.contextMenuTarget)) {
+          target = this.contextMenuTarget[0]
+        } else {
+          target = this.contextMenuTarget
+        }
+        mmdata.setValid(target.mid, true)
+        this.$emit('valid', this.getSource(target.mid))
+        this.updateMmdata()
+        const sele = document.getElementById('selectedNode')?.lastChild?.lastChild as HTMLElement
+        if (sele) {
+          sele.style.color = ''
+        }
+        break
+      }
       case 'add': {
         let target: Mdata
         let sele: d3.Selection<Element, FlexNode, Element, FlexNode>
@@ -1294,6 +1317,7 @@ export default class MindMap extends Vue {
     const foreignDiv = foreign.append('xhtml:div').attr('contenteditable', false).text((d: FlexNode) => d.data.name)
     foreignDiv.on('blur', updateNodeName).on('mousedown', fdivMouseDown)
     foreignDiv.each((d, i, n) => {
+      const divEl = n[i] as HTMLElement
       const observer = new ResizeObserver((l) => {
         const t = l[0].target
         const b1 = getComputedStyle(t).borderTopWidth
@@ -1303,7 +1327,14 @@ export default class MindMap extends Vue {
           .attr('width', l[0].contentRect.width + spacing * 2) // div和foreign border
           .attr('height', l[0].contentRect.height + spacing * 2)
       })
-      observer.observe(n[i] as Element)
+      observer.observe(divEl)
+      if (d.data.isValid === false || d.parent?.data.isValid === false) {
+        console.log(d, divEl)
+        // 无效数据
+        divEl.style.color = 'red'
+      } else {
+        divEl.style.color = ''
+      }
     })
 
     const gBtn = gNode.append('g').attr('class', 'gButton').attr('transform', gBtnTransform).style('visibility', gBtnVisible)
@@ -1385,10 +1416,17 @@ export default class MindMap extends Vue {
   draw() { // 生成svg
     const { dKey, mindmapG, appendNode, updateNode, exitNode } = this
     const d = [this.root]
-
     ;(mindmapG.selectAll(`g${d[0] ? `.depth_${d[0].depth}.node` : ''}`) as d3.Selection<Element, FlexNode, Element, FlexNode>)
       .data(d, dKey)
       .join(appendNode, updateNode, exitNode)
+    mindmapG.selectAll('foreignObject > div').each((d, i, n) => {
+      const divEl = n[i] as HTMLElement
+      if ((d as FlexNode).data.isValid === false || (d as FlexNode).parent?.data.isValid === false) {
+        divEl.style.color = 'red'
+      } else {
+        divEl.style.color = ''
+      }
+    })
   }
   tree() { // 数据处理
     const { ySpacing } = this
