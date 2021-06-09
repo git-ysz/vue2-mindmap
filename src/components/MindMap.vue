@@ -143,6 +143,12 @@ export default class MindMap extends Vue {
   @Prop({ default: '请输入搜索值' }) searchPlaceholder!: string
   @Prop({ default: () => ({}) }) searchStyle!: object
   @Prop({ default: '' }) searchClassName!: string
+  // 是否可以删除
+  @Prop({ default: true }) nodeDel!: boolean
+  // 是否可以置为有效
+  @Prop({ default: true }) valid!: boolean
+  // 是否可以置为无效
+  @Prop({ default: true }) invalid!: boolean
 
   @Model('change', { required: true }) value!: Array<Data>
 
@@ -216,8 +222,8 @@ export default class MindMap extends Vue {
     valid: {
       title: '置为有效',
       name: 'valid',
-      disabled: true,
-      show: this.editable,
+      disabled: false,
+      show: this.editable && (this.valid || this.invalid),
     },
     add: {
       title: '新增子节点',
@@ -229,7 +235,7 @@ export default class MindMap extends Vue {
       title: '删除节点',
       name: 'delete',
       disabled: false,
-      show: this.editable,
+      show: this.editable && this.nodeDel,
     },
     collapse: {
       title: '折叠节点',
@@ -612,6 +618,9 @@ export default class MindMap extends Vue {
     this.updateMmdata()
   }
   del(s: Mdata | Mdata[]) {
+    if (!this.nodeDel || !this.editable) {
+      return
+    }
     this.toRecord = true
     if (Array.isArray(s)) {
       const idArr = []
@@ -732,16 +741,16 @@ export default class MindMap extends Vue {
           // }
           break
         }
-        case 'Backspace': {
-          d3.event.preventDefault()
-          this.del(im)
-          break
-        }
-        case 'Delete': {
-          d3.event.preventDefault()
-          this.del(im)
-          break
-        }
+        // case 'Backspace': {
+        //   d3.event.preventDefault()
+        //   this.del(im)
+        //   break
+        // }
+        // case 'Delete': {
+        //   d3.event.preventDefault()
+        //   this.del(im)
+        //   break
+        // }
         // case 'ArrowRight': {
         //   if (im.left && pNode) {
         //     this.selectNode(pNode)
@@ -805,10 +814,10 @@ export default class MindMap extends Vue {
   // 节点操作
   updateNodeName() { // 文本编辑完成时
     const editP = document.querySelector('#editing > foreignObject > div') as HTMLDivElement
-    const sele = d3.select('#editing') as d3.Selection<Element, FlexNode, Element, FlexNode>
-    const seleData = sele.data()[0]
+    // const sele = d3.select('#editing') as d3.Selection<Element, FlexNode, Element, FlexNode>
+    // const seleData = sele.data()[0]
     window.getSelection()?.removeAllRanges() // 清除选中
-    const editText = editP.innerText || ''
+    const editText = editP.innerText || '未命名'
     this.mindmapG.select('g#editing').each((d, i, n) => {
       (n[i] as Element).removeAttribute('id')
       const nd = this.updateName(d.data, editText)
@@ -818,10 +827,10 @@ export default class MindMap extends Vue {
           this.$emit('updateNodeName', d, nd.mid)
         }
       }
-      if (!editText) { // 没有值则删除
-        const im = seleData.data
-        this.del(im)
-      }
+      // if (!editText) { // 没有值则删除
+      //   const im = seleData.data
+      //   this.del(im)
+      // }
     })
     editP.setAttribute('contenteditable', 'false')
   }
@@ -965,7 +974,8 @@ export default class MindMap extends Vue {
       }
       const { data } = d
       this.contextMenuTarget = data
-      this.contextMenuItems.valid.disabled = data.isValid !== false
+      this.contextMenuItems.valid.title = data.isValid === false ? '置为有效' : '置为无效'
+      // this.contextMenuItems.valid.disabled = data.isValid !== false
       this.contextMenuItems.add.disabled = false
       this.contextMenuItems.collapse.disabled = !(data.children && data.children.length > 0)
       this.contextMenuItems.expand.disabled = !(data._children && data._children.length > 0)
@@ -1009,13 +1019,17 @@ export default class MindMap extends Vue {
         } else {
           target = this.contextMenuTarget
         }
-        mmdata.setValid(target.mid, true)
+        mmdata.setValid(target.mid, !target.isValid)
         this.$emit('valid', this.getSource(target.mid))
-        this.updateMmdata()
         const sele = document.getElementById('selectedNode')?.lastChild?.lastChild as HTMLElement
-        if (sele) {
-          sele.style.color = ''
+        if (sele && !target.isValid) {
+          if (!target.isValid) {
+            sele.style.color = ''
+          } else {
+            sele.style.color = 'red'
+          }
         }
+        this.updateMmdata()
         break
       }
       case 'add': {
@@ -1347,7 +1361,7 @@ export default class MindMap extends Vue {
           .attr('height', l[0].contentRect.height + spacing * 2)
       })
       observer.observe(divEl)
-      if (d.data.isValid === false || d.parent?.data.isValid === false) {
+      if (d.data.isValid === false) {
         // console.log(d, divEl)
         // 无效数据
         divEl.style.color = 'red'
@@ -1441,7 +1455,7 @@ export default class MindMap extends Vue {
       .join(appendNode, updateNode, exitNode)
     mindmapG.selectAll('foreignObject > div').each((d, i, n) => {
       const divEl = n[i] as HTMLElement
-      if ((d as FlexNode).data.isValid === false || (d as FlexNode).parent?.data.isValid === false) {
+      if ((d as FlexNode).data.isValid === false) {
         divEl.style.color = 'red'
       } else {
         divEl.style.color = ''

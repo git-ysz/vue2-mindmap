@@ -17,6 +17,7 @@
 | width           | Number           | 100%          | 设置思维导图宽度
 | height          | Number           | undefined     | 设置思维导图高度
 | editable        | Boolean          | true          | 设置节点是否可编辑
+| nodeDel         | Boolean          | true          | 设置节点是否可删除
 | x-spacing       | Number           | 55            | 设置节点横向间隔
 | y-spacing       | Number           | 10            | 设置节点纵向间隔
 | draggable       | Boolean          | true          | 设置节点是否可拖拽
