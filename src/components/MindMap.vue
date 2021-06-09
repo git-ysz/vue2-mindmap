@@ -210,6 +210,8 @@ export default class MindMap extends Vue {
   //   { title: '复制节点', name: 'copy', disabled: false, show: this.editable },
   //   { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
   // ]
+  menuClientWidth = 125
+  menuClientHeight = 200
   contextMenuItems = {
     valid: {
       title: '置为有效',
@@ -926,11 +928,13 @@ export default class MindMap extends Vue {
     // console.log(d, i, n)
     const sele = document.getElementById('selectedNode')
     const edit = document.getElementById('editing')
+    const mindmap = document.getElementById('mindmap') as HTMLElement
+
     const clickedNode = n[i].parentNode as Element
     const show = () => { // 显示右键菜单
       const pos = this.getViewPos()
-      this.contextMenuX = pos.left
-      this.contextMenuY = pos.top
+      this.contextMenuX = (pos.left + this.menuClientWidth) > mindmap.clientWidth ? mindmap.clientWidth - this.menuClientWidth : pos.left
+      this.contextMenuY = (pos.top + this.menuClientHeight) > mindmap.clientHeight ? mindmap.clientHeight - this.menuClientHeight : pos.top
       this.showContextMenu = true
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
