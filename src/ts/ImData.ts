@@ -75,9 +75,10 @@ function _getSource(d: Mdata, parentData?: Data) { // 返回源数据(未折叠�
   return nd
 }
 
-function initId(d: Mdata, mid = '0') { // 初始化唯一标识：待优化
+function initId(d: Mdata, mid = '0', isValid?: boolean) { // 初始化唯一标识：待优化
   d.mid = mid
   d.gKey = d.gKey || (gKey += 1)
+  d.isValid = d.isValid === undefined ? isValid : d.isValid
   const { children, _children, collapse } = d
   // console.log(11)
   if (children?.length && _children?.length) {
@@ -100,7 +101,7 @@ function initId(d: Mdata, mid = '0') { // 初始化唯一标识：待优化
         if (children[i].mid === 'del') {
           children.splice(i, 1)
         } else {
-          initId(children[i], `${mid}-${i}`)
+          initId(children[i], `${mid}-${i}`, d.isValid)
           i += 1
         }
       }
@@ -110,7 +111,7 @@ function initId(d: Mdata, mid = '0') { // 初始化唯一标识：待优化
         if (_children[i].mid === 'del') {
           _children.splice(i, 1)
         } else {
-          initId(_children[i], `${mid}-${i}`)
+          initId(_children[i], `${mid}-${i}`, d.isValid)
           i += 1
         }
       }
@@ -230,9 +231,28 @@ class ImData {
       const idChild = arr[i]
       const d = this.find(idChild)
       if (d && (!d.children || d.children.length === 0) && d.collapse) {
+        // console.log('展开', d)
         d.collapse = false
         d.children = d._children
         d._children = []
+      }
+    }
+  }
+
+  expandLevel(level: number, mid: string | string[]) { // 展开某一级别
+    if (!level) {
+      return
+    }
+    this.expand(mid)
+    const arr = Array.isArray(mid) ? mid : [mid]
+    for (let i = 0; i < arr.length; i++) {
+      const d = this.find(arr[i])
+      if (d) {
+        if (d.children?.length) {
+          this.expandLevel(level - 1, d.children.map(e => e.mid))
+        } else if (d._children?.length) {
+          this.expandLevel(level - 1, d._children.map(e => e.mid))
+        }
       }
     }
   }
@@ -287,6 +307,7 @@ class ImData {
     if (mid.length > 0) {
       const parent = this.find(mid)
       if (parent) {
+        child.isValid = child.isValid === undefined ? parent?.isValid : child.isValid
         if ((parent._children?.length || 0) > 0) { // 判断是否折叠，如果折叠，展开
           parent.children = parent._children
           parent._children = []

@@ -8,16 +8,26 @@
         ></rect>
       </svg>
     </div>
-    <input
-      v-if="showSearch"
-      v-model="search"
-      type="text"
-      :class="['search-input', searchClassName]"
-      :placeholder="searchPlaceholder"
-      :style="searchStyle"
-      @keydown.enter="searchNode()"
-      @blur="search = '';searchNode()"
-    />
+    <div>
+      <input
+        v-if="showSearch"
+        v-model="search"
+        type="text"
+        :class="['search-input', searchClassName]"
+        :placeholder="searchPlaceholder"
+        :style="searchStyle"
+        @keydown.enter="searchNode()"
+        @blur="search = '';searchNode()"
+      />
+      <slot>
+        <select id="expandLevel" style="position: absolute;" @change="el => expandLevel(el.target.value)">
+          <option :value="1">展开一级</option>
+          <option :value="2">展开二级</option>
+          <option :value="3">展开三级</option>
+          <option :value="4">展开四级</option>
+        </select>
+      </slot>
+    </div>
     <div ref="dummy" id="dummy"></div>
     <div
       ref="menu"
@@ -265,7 +275,11 @@ export default class MindMap extends Vue {
   link = d3.linkHorizontal().x((d) => d[0]).y((d) => d[1])
   zoom = d3.zoom() as d3.ZoomBehavior<Element, FlexNode>
   history = new History()
-
+  // 展开某一级节点
+  expandLevel(level: number) {
+    mmdata.expandLevel(level - 0, '0')
+    this.updateMmdata()
+  }
   // 按一定程度缩放，true时放大，false缩小
   scaleView(flag: boolean) {
     try {
@@ -1309,6 +1323,7 @@ export default class MindMap extends Vue {
       .join(appendNode, updateNode, exitNode)
   }
   appendNode(enter: d3.Selection<d3.EnterElement, FlexNode, Element, FlexNode>) {
+    // console.log('appendNode')
     const { expand, gEllTransform, gClass, gTransform, updateNodeName, foreignY, gBtnTransform, pathId, pathClass, pathColor, path, nest, fdivMouseDown, foreignX, gBtnSide, gBtnVisible, gEllVisible } = this
     const gNode = enter.append('g').attr('class', gClass).attr('transform', gTransform)
 
@@ -1329,7 +1344,7 @@ export default class MindMap extends Vue {
       })
       observer.observe(divEl)
       if (d.data.isValid === false || d.parent?.data.isValid === false) {
-        console.log(d, divEl)
+        // console.log(d, divEl)
         // 无效数据
         divEl.style.color = 'red'
       } else {
@@ -1369,6 +1384,7 @@ export default class MindMap extends Vue {
     return gNode
   }
   updateNode(update: d3.Selection<Element, FlexNode, Element, FlexNode>) {
+    // console.log('updateNode')
     const { gEllTransform, gClass, gTransform, easePolyInOut, foreignY, gBtnTransform, pathId, pathClass, pathColor, path, nest, foreignX } = this
     update.interrupt().selectAll('*').interrupt()
     update.attr('class', gClass).transition(easePolyInOut as any).attr('transform', gTransform)
@@ -1536,5 +1552,19 @@ export default class MindMap extends Vue {
       line-height: 32px;
       font-size: 12px;
     }
+  }
+  #expandLevel {
+    position: absolute;
+    width: 150px;
+    height: 32px;
+    line-height: 32px;
+    left: 10px;
+    top: 52px;
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    padding: 0 8px;
+    outline: none;
+    text-align: center;
   }
 </style>
