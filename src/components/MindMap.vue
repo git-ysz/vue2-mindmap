@@ -215,7 +215,6 @@ export default class MindMap extends Vue {
   //   { title: '粘贴为子节点', name: 'paste', disabled: true, show: this.editable },
   // ]
   menuClientWidth = 125
-  menuClientHeight = 200
   contextMenuItems = {
     valid: {
       title: '置为有效',
@@ -281,6 +280,16 @@ export default class MindMap extends Vue {
   link = d3.linkHorizontal().x((d) => d[0]).y((d) => d[1])
   zoom = d3.zoom() as d3.ZoomBehavior<Element, FlexNode>
   history = new History()
+  get menuClientHeight() {
+    let height = 10
+    for (const key in this.contextMenuItems) {
+      const element = this.contextMenuItems[key]
+      if (element.show) {
+        height += 21
+      }
+    }
+    return height
+  }
   // 展开某一级节点
   expandLevel(level: number) {
     mmdata.expandLevel(level - 0, '0')
