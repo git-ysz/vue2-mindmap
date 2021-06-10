@@ -1,5 +1,6 @@
 interface Data {
   name: string
+  dataId?: number // 数据id（后端接口传回）
   children?: Array<Data>
   _children?: Array<Data>
   collapse?: boolean
@@ -9,6 +10,7 @@ interface Data {
 
 interface Mdata {
   name: string
+  dataId?: number
   mid: string
   color: string
   gKey: number

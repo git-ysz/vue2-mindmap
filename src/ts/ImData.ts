@@ -52,6 +52,7 @@ function _getSource(d: Mdata, parentData?: Data) { // 返回源数据(未折叠�
     }
   }
   nd.left = d.left
+  nd.dataId = d.dataId
   nd.collapse = d.collapse
   nd.isValid = isValid === undefined ? true : isValid
   // 添加自定义属性（要更新Mdata Data类型）
@@ -175,8 +176,10 @@ class ImData {
     const array = mid.split('-').map(n => ~~n)
     let data = this.data
     for (let i = 1; i < array.length; i++) {
-      if (data && data.children) {
+      if (data && data.children?.length) {
         data = data.children[array[i]]
+      } else if (data && data._children?.length) { // No data matching mid
+        data = data._children[array[i]]
       } else { // No data matching mid
         return null
       }

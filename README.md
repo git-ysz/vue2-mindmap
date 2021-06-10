@@ -18,6 +18,7 @@
 | height          | Number           | undefined     | 设置思维导图高度
 | editable        | Boolean          | true          | 设置节点是否可编辑
 | nodeDel         | Boolean          | true          | 设置节点是否可删除
+| valid           | Boolean          | true          | 设置节点是否可更改有效状态
 | x-spacing       | Number           | 55            | 设置节点横向间隔
 | y-spacing       | Number           | 10            | 设置节点纵向间隔
 | draggable       | Boolean          | true          | 设置节点是否可拖拽
@@ -43,6 +44,7 @@
 | Name           | Type           | Description
 | ---            | ---            | ---
 | name           | String         | 节点名称
+| dataId         | String         | 节点数据id，接口传回（控制节点是否可以物理删除，有值则不能删除）
 | mid            | String         | 节点唯一id，自动生成
 | collapse       | Booble         | 是否折叠
 | customAddBtn   | Booble         | 是否自定义点击“添加节点按钮”事件，为true时响应customAdd事件
@@ -52,15 +54,15 @@
 
 ## EVENTS
 
-| Name           | arguments            | Description
-| ---            | ---                  | ---
-| updateNodeName | data, mid            | 更新节点名称时，传入节点数据和节点id
-| change         | data                 | 更新节点名称时，传入节点数据
-| click          | data, mid            | 点击节点时，传入节点数据和节点id
-| valid          | data                 | 置为有效
-| copy           | data, tragetId       | 需要复制的数据，传入复制的数据和节点id
-| paste          | data, parentId       | 复制的数据，传入复制的数据和父节点id
-| customAdd      | mid                  | 点击添加节点按钮时响应事件(custom-add为true时触发)，传入节点id
+| Name           | arguments                    | Description
+| ---            | ---                          | ---
+| updateNodeName | data, Object(dataId, mid)    | 更新节点名称时，传入节点数据和节点dataId, mid
+| change         | data                         | 更新节点名称时，传入节点数据
+| click          | data, Object(dataId, mid)    | 点击节点时，传入节点数据和节点dataId, mid
+| valid          | mid[], valid                 | 置为有效,无效。传入节点id和有效状态
+| copy           | data, tragetId               | 需要复制的数据，传入复制的数据和节点id
+| paste          | data, parentId               | 复制的数据，传入复制的数据和父节点id
+| customAdd      | Object(dataId, mid)          | 点击添加节点按钮时响应事件(custom-add为true时触发)，传入dataId, mid
 
 ## SLOT
 zoom-out-btn

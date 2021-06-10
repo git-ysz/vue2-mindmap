@@ -145,10 +145,8 @@ export default class MindMap extends Vue {
   @Prop({ default: '' }) searchClassName!: string
   // 是否可以删除
   @Prop({ default: true }) nodeDel!: boolean
-  // 是否可以置为有效
+  // 是否可以更改有效状态
   @Prop({ default: true }) valid!: boolean
-  // 是否可以置为无效
-  @Prop({ default: true }) invalid!: boolean
 
   @Model('change', { required: true }) value!: Array<Data>
 
@@ -223,7 +221,7 @@ export default class MindMap extends Vue {
       title: '置为有效',
       name: 'valid',
       disabled: false,
-      show: this.editable && (this.valid || this.invalid),
+      show: this.editable && this.valid,
     },
     add: {
       title: '新增子节点',
@@ -824,7 +822,7 @@ export default class MindMap extends Vue {
       if (nd && editText) {
         const d = this.getSource(nd.mid)
         if (d.name) {
-          this.$emit('updateNodeName', d, nd.mid)
+          this.$emit('updateNodeName', d, { dataId: nd.dataId, mid: nd.mid })
         }
       }
       // if (!editText) { // 没有值则删除
@@ -928,7 +926,7 @@ export default class MindMap extends Vue {
       } else {
         sele.setAttribute('__click__', '1')
         if (!dragFlag) {
-          this.$emit('click', this.getSource(d.data.mid), d.data.mid)
+          this.$emit('click', this.getSource(d.data.mid), { dataId: d.data.dataId, mid: d.data.mid })
         }
       }
     }
@@ -948,6 +946,8 @@ export default class MindMap extends Vue {
       this.clearSelection()
       setTimeout(() => { this.$refs.menu.focus() }, 300)
     }
+    this.contextMenuItems.valid.show = this.editable && this.valid
+    this.contextMenuItems.delete.show = this.editable && this.nodeDel
     if (clickedNode.classList.contains('multiSelectedNode')) {
       const t: Mdata[] = []
       ;(this.mindmapG.selectAll('g.multiSelectedNode') as d3.Selection<Element, FlexNode, Element, FlexNode>).each((d, i, n) => { t.push(d.data) })
@@ -962,10 +962,21 @@ export default class MindMap extends Vue {
         this.contextMenuItems.add.disabled = false
         this.contextMenuItems.copy.disabled = false
         this.contextMenuItems.paste.disabled = !this.copySource.name
+        this.contextMenuItems.valid.title = this.contextMenuTarget[0].isValid === false ? '置为有效' : '置为无效'
       } else {
         this.contextMenuItems.add.disabled = true
         this.contextMenuItems.copy.disabled = true
         this.contextMenuItems.paste.disabled = true
+        if (this.contextMenuTarget.every(i => i.isValid)) {
+          this.contextMenuItems.valid.title = '置为无效'
+        } else if (this.contextMenuTarget.every(i => !i.isValid)) {
+          this.contextMenuItems.valid.title = '置为有效'
+        } else {
+          this.contextMenuItems.valid.show = false
+        }
+      }
+      if (this.contextMenuTarget.some(i => i.dataId)) {
+        this.contextMenuItems.delete.show = false
       }
       show()
     } else if (clickedNode !== edit) { // 非正在编辑
@@ -975,7 +986,6 @@ export default class MindMap extends Vue {
       const { data } = d
       this.contextMenuTarget = data
       this.contextMenuItems.valid.title = data.isValid === false ? '置为有效' : '置为无效'
-      // this.contextMenuItems.valid.disabled = data.isValid !== false
       this.contextMenuItems.add.disabled = false
       this.contextMenuItems.collapse.disabled = !(data.children && data.children.length > 0)
       this.contextMenuItems.expand.disabled = !(data._children && data._children.length > 0)
@@ -984,6 +994,9 @@ export default class MindMap extends Vue {
       this.contextMenuItems.copy.disabled = false
       if (this.copySource.name) {
         this.contextMenuItems.paste.disabled = false
+      }
+      if (this.contextMenuTarget.dataId) {
+        this.contextMenuItems.delete.show = false
       }
       show()
     }
@@ -996,7 +1009,7 @@ export default class MindMap extends Vue {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
       this.mouseLeave(d, i, n)
-      this.$emit('customAdd', a.data.mid)
+      this.$emit('customAdd', { dataId: d.data.dataId, mid: d.data.mid })
     } else if ((n[i] as SVGElement).style.opacity === '1') {
       d3.event.stopPropagation()
       const d: FlexNode = d3.select(n[i].parentNode as Element).data()[0] as FlexNode
@@ -1013,22 +1026,16 @@ export default class MindMap extends Vue {
     const { contextMenuTarget } = this
     switch (key) {
       case 'valid': {
-        let target: Mdata
+        const isValid = this.contextMenuItems.valid.title === '置为有效'
+        let targetId: string | string[]
         if (Array.isArray(this.contextMenuTarget)) {
-          target = this.contextMenuTarget[0]
+          targetId = this.contextMenuTarget.map(i => i.mid)
+          mmdata.setValid(this.contextMenuTarget.map(i => i.mid), isValid)
         } else {
-          target = this.contextMenuTarget
+          targetId = [this.contextMenuTarget.mid]
+          mmdata.setValid(this.contextMenuTarget.mid, isValid)
         }
-        mmdata.setValid(target.mid, !target.isValid)
-        this.$emit('valid', this.getSource(target.mid))
-        const sele = document.getElementById('selectedNode')?.lastChild?.lastChild as HTMLElement
-        if (sele && !target.isValid) {
-          if (!target.isValid) {
-            sele.style.color = ''
-          } else {
-            sele.style.color = 'red'
-          }
-        }
+        this.$emit('valid', targetId, isValid)
         this.updateMmdata()
         break
       }
@@ -1547,7 +1554,7 @@ export default class MindMap extends Vue {
     position: relative;
     foreignObject > div.focus[contenteditable='false'] {
       background-color: #c60e11;
-      color: #ffffff;
+      color: #ffffff !important;
     }
   }
   .search-input {

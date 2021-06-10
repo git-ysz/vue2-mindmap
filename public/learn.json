@@ -10,7 +10,7 @@
         "ceshi": "测试属性1",
         "collapse": true,
         "children": [
-          { "name":"HTML" },
+          { "name":"HTML", "dataId": 123 },
           { "name":"CSS" },
           { "name":"JavaScript" },
           { "name":"DOM" },
