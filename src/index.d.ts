@@ -5,7 +5,7 @@ interface Data {
   _children?: Array<Data>
   collapse?: boolean
   left?: boolean
-  isValid?: boolean
+  isValid?: number
 }
 
 interface Mdata {
@@ -20,7 +20,7 @@ interface Mdata {
   collapse?: boolean
   customAddBtn?: boolean // 自定义点击gBtn事件
   left: boolean
-  isValid?: boolean
+  isValid?: number
 }
 
 interface FlexNode {

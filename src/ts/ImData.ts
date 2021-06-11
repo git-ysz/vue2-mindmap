@@ -47,14 +47,14 @@ function _getSource(d: Mdata, parentData?: Data) { // 返回源数据(未折叠�
   let isValid = d.isValid
   if (parentData) {
     // console.log(parentData.isValid, isValid)
-    if (parentData.isValid === false && isValid === undefined) {
+    if (parentData.isValid === 0 && isValid === undefined) {
       isValid = parentData.isValid
     }
   }
   nd.left = d.left
   nd.dataId = d.dataId
   nd.collapse = d.collapse
-  nd.isValid = isValid === undefined ? true : isValid
+  nd.isValid = isValid === undefined ? 1 : isValid
   // 添加自定义属性（要更新Mdata Data类型）
   // ...
   if (children?.length) {
@@ -76,7 +76,7 @@ function _getSource(d: Mdata, parentData?: Data) { // 返回源数据(未折叠�
   return nd
 }
 
-function initId(d: Mdata, mid = '0', isValid?: boolean) { // 初始化唯一标识：待优化
+function initId(d: Mdata, mid = '0', isValid?: number) { // 初始化唯一标识：待优化
   d.mid = mid
   d.gKey = d.gKey || (gKey += 1)
   d.isValid = d.isValid === undefined ? isValid : d.isValid
@@ -198,7 +198,7 @@ class ImData {
     }
   }
 
-  setValid(mid: string | string[], value: boolean) { // 设置有效标记
+  setValid(mid: string | string[], value: number) { // 设置有效标记
     const arr = Array.isArray(mid) ? mid : [mid]
     // const d = this.find(mid)
     for (let i = 0; i < arr.length; i++) {

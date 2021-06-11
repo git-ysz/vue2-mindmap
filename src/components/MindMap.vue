@@ -971,7 +971,7 @@ export default class MindMap extends Vue {
         this.contextMenuItems.add.disabled = false
         this.contextMenuItems.copy.disabled = false
         this.contextMenuItems.paste.disabled = !this.copySource.name
-        this.contextMenuItems.valid.title = this.contextMenuTarget[0].isValid === false ? '置为有效' : '置为无效'
+        this.contextMenuItems.valid.title = this.contextMenuTarget[0].isValid === 0 ? '置为有效' : '置为无效'
       } else {
         this.contextMenuItems.add.disabled = true
         this.contextMenuItems.copy.disabled = true
@@ -994,7 +994,7 @@ export default class MindMap extends Vue {
       }
       const { data } = d
       this.contextMenuTarget = data
-      this.contextMenuItems.valid.title = data.isValid === false ? '置为有效' : '置为无效'
+      this.contextMenuItems.valid.title = data.isValid === 0 ? '置为有效' : '置为无效'
       this.contextMenuItems.add.disabled = false
       this.contextMenuItems.collapse.disabled = !(data.children && data.children.length > 0)
       this.contextMenuItems.expand.disabled = !(data._children && data._children.length > 0)
@@ -1035,7 +1035,7 @@ export default class MindMap extends Vue {
     const { contextMenuTarget } = this
     switch (key) {
       case 'valid': {
-        const isValid = this.contextMenuItems.valid.title === '置为有效'
+        const isValid = this.contextMenuItems.valid.title === '置为有效' ? 1 : 0
         let targetId: string | string[]
         if (Array.isArray(this.contextMenuTarget)) {
           targetId = this.contextMenuTarget.map(i => i.mid)
@@ -1377,7 +1377,7 @@ export default class MindMap extends Vue {
           .attr('height', l[0].contentRect.height + spacing * 2)
       })
       observer.observe(divEl)
-      if (d.data.isValid === false) {
+      if (d.data.isValid === 0) {
         // console.log(d, divEl)
         // 无效数据
         divEl.style.color = 'red'
@@ -1471,7 +1471,7 @@ export default class MindMap extends Vue {
       .join(appendNode, updateNode, exitNode)
     mindmapG.selectAll('foreignObject > div').each((d, i, n) => {
       const divEl = n[i] as HTMLElement
-      if ((d as FlexNode).data.isValid === false) {
+      if ((d as FlexNode).data.isValid === 0) {
         divEl.style.color = 'red'
       } else {
         divEl.style.color = ''

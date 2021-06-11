@@ -49,7 +49,7 @@
 | collapse       | Booble         | 是否折叠
 | customAddBtn   | Booble         | 是否自定义点击“添加节点按钮”事件，为true时响应customAdd事件
 | left           | Booble         | 节点是否在左侧显示
-| isValid        | Booble         | 节点是否有效（文字标红）
+| isValid        | Number         | 节点是否有效（文字标红）,值为1 或 0
 | children       | Array(Data)    | 子节点
 
 ## EVENTS
